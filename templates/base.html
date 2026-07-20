@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{% block meta_description %}A clear, independent view of the Yellow House.{% endblock %}">
+    <title>{% block title %}Watch Yellow House{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <script src="{% static 'js/navigation.js' %}" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <button class="nav-toggle" type="button" aria-controls="site-sidebar" aria-expanded="false">
+        <span class="nav-toggle__icon" aria-hidden="true"></span>
+        <span class="nav-toggle__label">Menu</span>
+    </button>
+
+    <div class="site-shell">
+        {% include "components/sidebar.html" %}
+
+        <main class="page-content" id="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <button class="nav-scrim" type="button" aria-label="Close navigation" tabindex="-1"></button>
+</body>
+</html>
+
