@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Watch Yellow House{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+    <header class="page-header">
+        <p class="eyebrow">Overview</p>
+        <h1>Dashboard</h1>
+        <p class="page-intro">Video and detection activity will appear here.</p>
+    </header>
+
+    <section class="empty-panel" aria-labelledby="dashboard-empty-title">
+        <div class="empty-panel__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"/></svg>
+        </div>
+        <div>
+            <h2 id="dashboard-empty-title">No dashboard data yet</h2>
+            <p>Detection summaries will be shown after a video feed is connected.</p>
+        </div>
+        <a class="button-link" href="{% url 'core:video_feeds' %}">View video feeds <span aria-hidden="true">→</span></a>
+    </section>
+</div>
+{% endblock %}

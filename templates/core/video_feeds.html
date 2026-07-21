@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Video Feeds · Watch Yellow House{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+    <header class="page-header">
+        <p class="eyebrow">Streams</p>
+        <h1>Video Feeds</h1>
+        <p class="page-intro">Manage the live streams used for object detection.</p>
+    </header>
+
+    <section class="empty-panel" aria-labelledby="feeds-empty-title">
+        <div class="empty-panel__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 15.5v-9ZM10 8l5 2.5-5 2.5V8Z"/></svg>
+        </div>
+        <div>
+            <h2 id="feeds-empty-title">No video feeds configured</h2>
+            <p>Feed configuration will be added here next.</p>
+        </div>
+    </section>
+</div>
+{% endblock %}

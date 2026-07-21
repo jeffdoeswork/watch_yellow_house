@@ -7,4 +7,5 @@ __pycache__/
 staticfiles/
 .coverage
 htmlcov/
-
+models/*.pt
+runs/

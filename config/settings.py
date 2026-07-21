@@ -1,4 +1,5 @@
 """Django settings for Watch Yellow House."""
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,6 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "core",
+    "vision",
 ]
 
 MIDDLEWARE = [
@@ -70,3 +72,12 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Long-running object-detection worker settings. Environment variables keep
+# stream credentials and machine-specific tuning out of source control.
+YOLO_MODEL = os.getenv("YOLO_MODEL", str(BASE_DIR / "models" / "yolo26x.pt"))
+YOLO_SOURCE = os.getenv("YOLO_SOURCE")
+YOLO_DEVICE = os.getenv("YOLO_DEVICE", "0")
+YOLO_IMAGE_SIZE = int(os.getenv("YOLO_IMAGE_SIZE", "640"))
+YOLO_CONFIDENCE = float(os.getenv("YOLO_CONFIDENCE", "0.25"))
+YOLO_FRAME_STRIDE = int(os.getenv("YOLO_FRAME_STRIDE", "1"))
+YOLO_QUANTIZE = os.getenv("YOLO_QUANTIZE", "16")
