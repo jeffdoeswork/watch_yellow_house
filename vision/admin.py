@@ -5,8 +5,10 @@ from .models import VideoFeed
 
 @admin.register(VideoFeed)
 class VideoFeedAdmin(admin.ModelAdmin):
-    fields = ("rtsp_url",)
-    list_display = ("id", "connection_host", "created_at")
+    fields = ("rtsp_url", "is_enabled")
+    list_display = ("id", "connection_host", "is_enabled", "created_at")
+    list_editable = ("is_enabled",)
+    list_filter = ("is_enabled",)
     ordering = ("id",)
 
     @admin.display(description="Connection")

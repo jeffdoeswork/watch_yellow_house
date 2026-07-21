@@ -1,10 +1,12 @@
 from time import sleep
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from vision.config import YoloConfig
+from vision.config import YoloConfig, YoloRuntimeConfig
 from vision.services.detection_state import DetectionStateRecorder
 from vision.services.yolo_runner import YoloRunner
+from vision.services.yolo_worker import MultiFeedYoloWorker
 
 
 class Command(BaseCommand):
@@ -61,6 +63,20 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Detection stopped by operator."))
 
     def _run(self, options):
+        if not options.get("source") and not settings.YOLO_SOURCE and not options.get(
+            "feed_id"
+        ):
+            config = YoloRuntimeConfig.from_options(options)
+            worker = MultiFeedYoloWorker(config, self.stdout.write)
+            frame_count = worker.run(once=options["once"])
+            if options["once"]:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Detection finished after {frame_count} frame(s)."
+                    )
+                )
+            return
+
         while True:
             try:
                 config = YoloConfig.from_options(options)
@@ -72,7 +88,9 @@ class Command(BaseCommand):
                 continue
 
             recorder = (
-                DetectionStateRecorder(config.feed_id) if config.feed_id is not None else None
+                DetectionStateRecorder(config.feed_id)
+                if config.feed_id is not None
+                else None
             )
             runner = YoloRunner(
                 config,

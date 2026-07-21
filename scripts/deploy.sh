@@ -12,6 +12,7 @@ SERVER_NAME="${SERVER_NAME:-}"
 
 readonly ENV_FILE="/etc/watch-yellow-house.env"
 readonly STATIC_DIR="/var/www/watch-yellow-house/static"
+readonly PREVIEW_DIR="/var/lib/watch-yellow-house/previews"
 readonly DJANGO_UNIT="watch-yellow-house-django.service"
 readonly YOLO_UNIT="watch-yellow-house-yolo.service"
 readonly NGINX_SITE="watch-yellow-house.conf"
@@ -165,7 +166,9 @@ install_environment() {
         printf '\n# Production overrides managed by deploy.sh\n'
         printf 'DJANGO_DEBUG=false\n'
         printf 'DJANGO_STATIC_ROOT=%s\n' "$STATIC_DIR"
+        printf 'YOLO_PREVIEW_ROOT=%s\n' "$PREVIEW_DIR"
     } >> "$temp_env"
+    install -d -m 0750 -o "$APP_USER" -g www-data "$PREVIEW_DIR"
     install -m 0600 "$temp_env" "$ENV_FILE"
     unlink "$temp_env"
 }

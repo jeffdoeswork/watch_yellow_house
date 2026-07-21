@@ -88,9 +88,13 @@
   };
 
   const renderStatus = (payload) => {
-    if (!payload.has_detection) {
+    if (payload.status === "paused") {
+      status.textContent = "Detection paused";
+    } else if (payload.status === "waiting") {
       status.textContent = "Waiting for the detection worker";
-    } else if (!payload.is_active) {
+    } else if (payload.status === "reconnecting") {
+      status.textContent = "Reconnecting to detection feed";
+    } else if (payload.status === "stale") {
       status.textContent = "Detection data is stale";
     } else {
       status.textContent = `Detection active · frame ${payload.frame_number} · ${payload.inference_ms.toFixed(1)}ms`;

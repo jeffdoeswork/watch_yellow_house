@@ -7,15 +7,33 @@ from django.core.management.base import CommandError
 
 
 @dataclass(frozen=True, slots=True)
-class YoloConfig:
+class YoloRuntimeConfig:
     model: str
-    source: str | int
-    feed_id: int | None
     device: str
     image_size: int
     confidence: float
     frame_stride: int
     quantize: int | str | None
+
+    @classmethod
+    def from_options(cls, options: dict[str, Any]) -> "YoloRuntimeConfig":
+        model = options.get("model") or settings.YOLO_MODEL
+        return cls(
+            model=_resolve_model_path(model),
+            device=options.get("device") or settings.YOLO_DEVICE,
+            image_size=options.get("image_size") or settings.YOLO_IMAGE_SIZE,
+            confidence=_option_or_setting(
+                options.get("confidence"), settings.YOLO_CONFIDENCE
+            ),
+            frame_stride=options.get("frame_stride") or settings.YOLO_FRAME_STRIDE,
+            quantize=_normalize_quantize(settings.YOLO_QUANTIZE),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class YoloConfig(YoloRuntimeConfig):
+    source: str | int
+    feed_id: int | None
 
     @classmethod
     def from_options(cls, options: dict[str, Any]) -> "YoloConfig":
@@ -24,18 +42,16 @@ class YoloConfig:
         if source is None:
             feed_id, source = _database_source(feed_id)
 
-        model = options.get("model") or settings.YOLO_MODEL
+        runtime = YoloRuntimeConfig.from_options(options)
         return cls(
-            model=_resolve_model_path(model),
+            model=runtime.model,
+            device=runtime.device,
+            image_size=runtime.image_size,
+            confidence=runtime.confidence,
+            frame_stride=runtime.frame_stride,
+            quantize=runtime.quantize,
             source=_normalize_source(source),
             feed_id=feed_id,
-            device=options.get("device") or settings.YOLO_DEVICE,
-            image_size=options.get("image_size") or settings.YOLO_IMAGE_SIZE,
-            confidence=_option_or_setting(
-                options.get("confidence"), settings.YOLO_CONFIDENCE
-            ),
-            frame_stride=options.get("frame_stride") or settings.YOLO_FRAME_STRIDE,
-            quantize=_normalize_quantize(settings.YOLO_QUANTIZE),
         )
 
 

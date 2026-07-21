@@ -20,6 +20,9 @@
                     <span>
                         <strong>Video Feed #{{ feed.pk }}</strong>
                         <small>{{ feed.connection_host }}</small>
+                        <small class="feed-card__status{% if feed.is_enabled %} feed-card__status--enabled{% endif %}">
+                            {% if feed.is_enabled %}Detection enabled{% else %}Detection paused{% endif %}
+                        </small>
                     </span>
                     <span class="feed-card__arrow" aria-hidden="true">→</span>
                 </a>

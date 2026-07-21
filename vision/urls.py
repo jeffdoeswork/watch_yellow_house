@@ -13,6 +13,11 @@ urlpatterns = [
         name="video_feed_detections",
     ),
     path(
+        "video-feeds/<int:pk>/preview/",
+        views.video_feed_preview,
+        name="video_feed_preview",
+    ),
+    path(
         "video-feeds/<int:pk>/stream/",
         views.video_feed_stream,
         name="video_feed_stream",

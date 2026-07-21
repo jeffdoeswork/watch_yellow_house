@@ -119,3 +119,15 @@ YOLO_COUNT_WINDOW = max(1, int(os.getenv("YOLO_COUNT_WINDOW", "10")))
 YOLO_STATE_STALE_SECONDS = max(
     1, int(os.getenv("YOLO_STATE_STALE_SECONDS", "15"))
 )
+YOLO_INFERENCE_FPS = max(0.1, float(os.getenv("YOLO_INFERENCE_FPS", "2")))
+YOLO_PREVIEW_FPS = max(0.1, float(os.getenv("YOLO_PREVIEW_FPS", "1")))
+YOLO_PREVIEW_WIDTH = max(160, int(os.getenv("YOLO_PREVIEW_WIDTH", "640")))
+YOLO_PREVIEW_JPEG_QUALITY = max(
+    1, min(100, int(os.getenv("YOLO_PREVIEW_JPEG_QUALITY", "65")))
+)
+YOLO_PREVIEW_ROOT = env_path(
+    "YOLO_PREVIEW_ROOT", BASE_DIR / ".runtime" / "previews"
+)
+YOLO_FEED_REFRESH_SECONDS = max(
+    1.0, float(os.getenv("YOLO_FEED_REFRESH_SECONDS", "5"))
+)

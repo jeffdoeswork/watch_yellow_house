@@ -5,6 +5,11 @@ from django.db import models
 
 
 class VideoFeed(models.Model):
+    is_enabled = models.BooleanField(
+        "detection enabled",
+        default=True,
+        help_text="Include this feed in the shared YOLO detection worker.",
+    )
     rtsp_url = models.TextField(
         "RTSP connection",
         validators=[URLValidator(schemes=("rtsp", "rtsps"))],
@@ -30,6 +35,12 @@ class VideoFeed(models.Model):
 class FeedDetectionState(models.Model):
     """Latest bounded detection state published by the YOLO worker."""
 
+    class WorkerStatus(models.TextChoices):
+        WAITING = "waiting", "Waiting"
+        CONNECTED = "connected", "Connected"
+        RECONNECTING = "reconnecting", "Reconnecting"
+        DETECTING = "detecting", "Detecting"
+
     feed = models.OneToOneField(
         VideoFeed,
         on_delete=models.CASCADE,
@@ -41,6 +52,11 @@ class FeedDetectionState(models.Model):
     boxes = models.JSONField(default=list, blank=True)
     frame_number = models.PositiveBigIntegerField(default=0)
     inference_ms = models.FloatField(default=0)
+    worker_status = models.CharField(
+        max_length=20,
+        choices=WorkerStatus.choices,
+        default=WorkerStatus.WAITING,
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

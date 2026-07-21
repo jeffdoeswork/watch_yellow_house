@@ -24,7 +24,7 @@
             <p class="eyebrow">YOLO</p>
             <h2 id="feed-detections-title">Detected now</h2>
             <p class="detection-panel__status" data-detection-status aria-live="polite">
-                {% if detection.is_active %}Detection active{% elif detection.has_detection %}Detection data is stale{% else %}Waiting for the detection worker{% endif %}
+                {% if detection.status == 'detecting' %}Detection active{% elif detection.status == 'reconnecting' %}Reconnecting to detection feed{% elif detection.status == 'stale' %}Detection data is stale{% elif detection.status == 'paused' %}Detection paused{% else %}Waiting for the detection worker{% endif %}
             </p>
             <div class="detection-counts" data-detection-counts>
                 {% for name, count in detection.stable_counts.items %}

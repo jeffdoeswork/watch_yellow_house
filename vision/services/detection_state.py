@@ -112,6 +112,7 @@ class DetectionStateRecorder:
                 "boxes": detection_boxes(result),
                 "frame_number": frame_number,
                 "inference_ms": round(float(result.speed.get("inference", 0.0)), 2),
+                "worker_status": FeedDetectionState.WorkerStatus.DETECTING,
             },
         )
 

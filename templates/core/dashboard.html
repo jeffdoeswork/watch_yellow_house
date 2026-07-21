@@ -49,17 +49,31 @@
                 </div>
                 <div class="feed-summary-grid" data-dashboard-feeds>
                     {% for feed in feeds %}
-                        <a class="feed-summary-card" href="{% url 'vision:video_feed_detail' feed.id %}">
+                        <a
+                            class="feed-summary-card"
+                            href="{{ feed.detail_url }}"
+                            data-feed-card
+                            data-feed-id="{{ feed.id }}"
+                            data-preview-url="{{ feed.preview_url }}"
+                            data-feed-enabled="{{ feed.is_enabled|yesno:'true,false' }}"
+                            data-feed-status-value="{{ feed.status }}"
+                        >
+                            <span class="feed-summary-card__preview" data-feed-preview>
+                                <img data-feed-preview-image alt="Annotated preview from {{ feed.name }}">
+                                <span class="feed-summary-card__placeholder" data-feed-preview-placeholder>
+                                    {% if feed.is_enabled %}Waiting for preview{% else %}Detection paused{% endif %}
+                                </span>
+                            </span>
                             <span class="feed-summary-card__header">
                                 <span>
                                     <strong>{{ feed.name }}</strong>
                                     <small>{{ feed.connection_host }}</small>
                                 </span>
-                                <span class="feed-summary-card__status{% if feed.is_active %} feed-summary-card__status--online{% endif %}">
-                                    {% if feed.is_active %}Detecting{% elif feed.has_detection %}Stale{% else %}Waiting{% endif %}
+                                <span class="feed-summary-card__status{% if feed.status == 'detecting' %} feed-summary-card__status--online{% endif %}" data-feed-status>
+                                    {{ feed.status|title }}
                                 </span>
                             </span>
-                            <span class="feed-summary-card__counts">
+                            <span class="feed-summary-card__counts" data-feed-counts>
                                 {% for name, count in feed.stable_counts.items %}
                                     <span><b>{{ count }}</b> {{ name }}</span>
                                 {% empty %}

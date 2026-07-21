@@ -8,7 +8,9 @@ from django.utils import timezone
 from vision.models import FeedDetectionState, VideoFeed
 
 
-def state_payload(state: FeedDetectionState | None) -> dict:
+def state_payload(
+    state: FeedDetectionState | None, *, is_enabled: bool = True
+) -> dict:
     if state is None:
         return {
             "has_detection": False,
@@ -19,20 +21,36 @@ def state_payload(state: FeedDetectionState | None) -> dict:
             "inference_ms": 0,
             "updated_at": None,
             "is_active": False,
+            "is_enabled": is_enabled,
+            "status": "waiting" if is_enabled else "paused",
         }
 
-    is_active = state.updated_at >= timezone.now() - timedelta(
+    has_detection = state.frame_number > 0
+    is_active = has_detection and state.updated_at >= timezone.now() - timedelta(
         seconds=settings.YOLO_STATE_STALE_SECONDS
     )
+    if not is_enabled:
+        status = "paused"
+        is_active = False
+    elif state.worker_status == FeedDetectionState.WorkerStatus.RECONNECTING:
+        status = "reconnecting"
+    elif not has_detection:
+        status = "waiting"
+    elif is_active:
+        status = "detecting"
+    else:
+        status = "stale"
     return {
-        "has_detection": True,
-        "stable_counts": state.stable_counts,
-        "current_counts": state.current_counts,
-        "boxes": state.boxes,
+        "has_detection": has_detection,
+        "stable_counts": state.stable_counts if is_enabled else {},
+        "current_counts": state.current_counts if is_enabled else {},
+        "boxes": state.boxes if is_enabled else [],
         "frame_number": state.frame_number,
         "inference_ms": state.inference_ms,
         "updated_at": state.updated_at.isoformat(),
         "is_active": is_active,
+        "is_enabled": is_enabled,
+        "status": status,
     }
 
 
@@ -45,7 +63,9 @@ def dashboard_payload() -> dict:
         for state in FeedDetectionState.objects.select_related("feed").all()
     }
     for feed in VideoFeed.objects.all():
-        payload = state_payload(states_by_feed.get(feed.pk))
+        payload = state_payload(
+            states_by_feed.get(feed.pk), is_enabled=feed.is_enabled
+        )
         if payload["is_active"]:
             totals.update(payload["stable_counts"])
         feed_summaries.append(
@@ -54,6 +74,7 @@ def dashboard_payload() -> dict:
                 "name": str(feed),
                 "connection_host": feed.connection_host,
                 "detail_url": reverse("vision:video_feed_detail", args=(feed.pk,)),
+                "preview_url": reverse("vision:video_feed_preview", args=(feed.pk,)),
                 **payload,
             }
         )

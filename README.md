@@ -49,16 +49,18 @@ in GPU memory. Run it alongside the web server:
 # Terminal 1: web application
 python manage.py runserver
 
-# Terminal 2: persistent detector using the first saved Video Feed
+# Terminal 2: persistent shared detector for every enabled Video Feed
 python manage.py run-yolo
 ```
 
-Add RTSP connections under **Video feeds** in Django admin. With no source
-argument, the worker uses the first saved feed. Select a specific record with
-`--feed-id ID`. The source can also be overridden with `--source` or the
-`YOLO_SOURCE` environment variable; it may be a stream, video/image path, or a
-webcam index such as `0`. See `.env.example` for all tuning settings.
-The project `.env` file is loaded automatically.
+Add RTSP connections under **Video feeds** in Django admin. New feeds have
+detection enabled by default and can be paused with their **Detection enabled**
+checkbox. With no source argument, one resident model processes enabled feeds
+sequentially in round-robin order while each camera capture retains only its
+newest frame. Select one record for diagnostics with `--feed-id ID`. The source
+can also be overridden with `--source` or `YOLO_SOURCE`; it may be a stream,
+video/image path, or webcam index such as `0`. The project `.env` file is loaded
+automatically.
 
 Use `--once` to process one frame and exit during setup:
 
@@ -79,6 +81,13 @@ tied, so displayed counts remain whole numbers without reacting to a one-frame
 miss or an evenly alternating count.
 `YOLO_COUNT_WINDOW` changes the window size, and
 `YOLO_STATE_STALE_SECONDS` controls when old results are marked stale.
+
+The same inference result also produces a 640-pixel-wide, quality-65 annotated
+JPEG for the Dashboard once per second. Dashboard previews do not open another
+RTSP connection or run another inference. Full MP4 video and audio remain on an
+individual feed's detail page. Tune the independent detection and preview rates
+with `YOLO_INFERENCE_FPS` and `YOLO_PREVIEW_FPS`; see `.env.example` for image,
+storage, and feed-refresh settings.
 
 ## Production deployment
 

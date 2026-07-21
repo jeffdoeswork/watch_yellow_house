@@ -56,16 +56,26 @@ class AuthenticatedPageTests(TestCase):
     def test_dashboard_totals_active_stabilized_feed_counts(self):
         active_feed = VideoFeed.objects.create(rtsp_url="rtsp://active.example/live")
         stale_feed = VideoFeed.objects.create(rtsp_url="rtsp://stale.example/live")
+        paused_feed = VideoFeed.objects.create(
+            rtsp_url="rtsp://paused.example/live", is_enabled=False
+        )
         FeedDetectionState.objects.create(
             feed=active_feed,
             stable_counts={"person": 2, "car": 1},
+            frame_number=1,
         )
         stale_state = FeedDetectionState.objects.create(
             feed=stale_feed,
             stable_counts={"person": 20},
+            frame_number=1,
         )
         FeedDetectionState.objects.filter(pk=stale_state.pk).update(
             updated_at=timezone.now() - timedelta(minutes=5)
+        )
+        FeedDetectionState.objects.create(
+            feed=paused_feed,
+            stable_counts={"person": 100},
+            frame_number=1,
         )
 
         response = self.client.get(reverse("core:dashboard"))
@@ -73,6 +83,21 @@ class AuthenticatedPageTests(TestCase):
         self.assertEqual(response.context["total_objects"], 3)
         self.assertEqual(response.context["stable_counts"], {"car": 1, "person": 2})
         self.assertContains(response, "Mode of the latest 10 inference frames")
+        self.assertContains(response, "Paused")
+
+    def test_dashboard_uses_snapshots_instead_of_full_video_streams(self):
+        feed = VideoFeed.objects.create(rtsp_url="rtsp://camera.example/live")
+
+        response = self.client.get(reverse("core:dashboard"))
+
+        self.assertContains(
+            response,
+            reverse("vision:video_feed_preview", args=(feed.pk,)),
+        )
+        self.assertNotContains(
+            response,
+            reverse("vision:video_feed_stream", args=(feed.pk,)),
+        )
 
     def test_dashboard_detection_endpoint_is_authenticated(self):
         self.client.logout()
