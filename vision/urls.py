@@ -8,6 +8,11 @@ urlpatterns = [
     path("video-feeds/", views.video_feed_list, name="video_feed_list"),
     path("video-feeds/<int:pk>/", views.video_feed_detail, name="video_feed_detail"),
     path(
+        "video-feeds/<int:pk>/detections/",
+        views.video_feed_detections,
+        name="video_feed_detections",
+    ),
+    path(
         "video-feeds/<int:pk>/stream/",
         views.video_feed_stream,
         name="video_feed_stream",

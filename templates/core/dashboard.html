@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Dashboard · Watch Yellow House{% endblock %}
 
@@ -7,18 +8,84 @@
     <header class="page-header">
         <p class="eyebrow">Overview</p>
         <h1>Dashboard</h1>
-        <p class="page-intro">Video and detection activity will appear here.</p>
+        <p class="page-intro">Stabilized object counts across every monitored feed.</p>
     </header>
 
-    <section class="empty-panel" aria-labelledby="dashboard-empty-title">
-        <div class="empty-panel__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"/></svg>
-        </div>
-        <div>
-            <h2 id="dashboard-empty-title">No dashboard data yet</h2>
-            <p>Detection summaries will be shown after a video feed is connected.</p>
-        </div>
-        <a class="button-link" href="{% url 'vision:video_feed_list' %}">View video feeds <span aria-hidden="true">→</span></a>
-    </section>
+    <div class="detection-dashboard" data-dashboard-detections-url="{% url 'core:detections' %}">
+        {% if feeds %}
+            <section class="dashboard-section" aria-labelledby="all-detections-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">All feeds</p>
+                        <h2 id="all-detections-title">Detected now</h2>
+                    </div>
+                    <p class="section-note">Mode of the latest 10 inference frames per feed</p>
+                </div>
+                <div class="metric-grid" data-dashboard-totals aria-live="polite">
+                    <article class="metric-card metric-card--total">
+                        <span class="metric-card__value">{{ total_objects }}</span>
+                        <span class="metric-card__label">Total objects</span>
+                    </article>
+                    {% for name, count in stable_counts.items %}
+                        <article class="metric-card">
+                            <span class="metric-card__value">{{ count }}</span>
+                            <span class="metric-card__label">{{ name }}</span>
+                        </article>
+                    {% empty %}
+                        <article class="metric-card metric-card--quiet">
+                            <span class="metric-card__value">0</span>
+                            <span class="metric-card__label">Waiting for detections</span>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="dashboard-section" aria-labelledby="feed-activity-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">By camera</p>
+                        <h2 id="feed-activity-title">Feed activity</h2>
+                    </div>
+                </div>
+                <div class="feed-summary-grid" data-dashboard-feeds>
+                    {% for feed in feeds %}
+                        <a class="feed-summary-card" href="{% url 'vision:video_feed_detail' feed.id %}">
+                            <span class="feed-summary-card__header">
+                                <span>
+                                    <strong>{{ feed.name }}</strong>
+                                    <small>{{ feed.connection_host }}</small>
+                                </span>
+                                <span class="feed-summary-card__status{% if feed.is_active %} feed-summary-card__status--online{% endif %}">
+                                    {% if feed.is_active %}Detecting{% elif feed.has_detection %}Stale{% else %}Waiting{% endif %}
+                                </span>
+                            </span>
+                            <span class="feed-summary-card__counts">
+                                {% for name, count in feed.stable_counts.items %}
+                                    <span><b>{{ count }}</b> {{ name }}</span>
+                                {% empty %}
+                                    <span>No stabilized detections</span>
+                                {% endfor %}
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </section>
+        {% else %}
+            <section class="empty-panel" aria-labelledby="dashboard-empty-title">
+                <div class="empty-panel__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V2"/></svg>
+                </div>
+                <div>
+                    <h2 id="dashboard-empty-title">No video feeds yet</h2>
+                    <p>Add an RTSP connection before detection summaries can appear.</p>
+                </div>
+                <a class="button-link" href="{% url 'vision:video_feed_list' %}">View video feeds <span aria-hidden="true">→</span></a>
+            </section>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{% static 'js/dashboard-detections.js' %}" defer></script>
 {% endblock %}

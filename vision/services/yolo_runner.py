@@ -2,14 +2,21 @@ from collections.abc import Callable
 from urllib.parse import urlsplit
 
 from vision.config import YoloConfig
+from vision.services.detection_state import detection_counts
 
 
 class YoloRunner:
     """Owns a single YOLO model for the lifetime of an inference worker."""
 
-    def __init__(self, config: YoloConfig, write: Callable[[str], None]):
+    def __init__(
+        self,
+        config: YoloConfig,
+        write: Callable[[str], None],
+        on_result: Callable[[int, object], None] | None = None,
+    ):
         self.config = config
         self.write = write
+        self.on_result = on_result
         self.model = None
 
     def run(self, *, once: bool = False) -> int:
@@ -32,6 +39,8 @@ class YoloRunner:
             verbose=False,
         ):
             processed_frames += 1
+            if self.on_result is not None:
+                self.on_result(processed_frames, result)
             self.write(format_result(processed_frames, result))
             if once:
                 break
@@ -49,11 +58,7 @@ class YoloRunner:
 
 def format_result(frame_number: int, result) -> str:
     detections = len(result.boxes) if result.boxes is not None else 0
-    counts: dict[str, int] = {}
-    if result.boxes is not None:
-        for class_id in result.boxes.cls.int().cpu().tolist():
-            class_name = result.names[class_id]
-            counts[class_name] = counts.get(class_name, 0) + 1
+    counts = detection_counts(result)
 
     summary = ", ".join(f"{name}={count}" for name, count in sorted(counts.items()))
     inference_ms = result.speed.get("inference", 0.0)

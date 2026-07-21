@@ -1,20 +1,47 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Video Feed #{{ video_feed.pk }} · Watch Yellow House{% endblock %}
 
 {% block content %}
-<div class="page-wrap">
+<div class="page-wrap page-wrap--wide">
     <a class="back-link" href="{% url 'vision:video_feed_list' %}"><span aria-hidden="true">←</span> Video Feeds</a>
     <header class="page-header page-header--detail">
         <p class="eyebrow">{{ video_feed.connection_host }}</p>
         <h1>Video Feed #{{ video_feed.pk }}</h1>
     </header>
 
-    <section class="video-player" aria-label="Live video feed">
-        <video controls playsinline preload="none">
-            <source src="{% url 'vision:video_feed_stream' video_feed.pk %}" type="video/mp4">
-            Your browser does not support live video playback.
-        </video>
-    </section>
+    <div class="feed-monitor" data-detections-url="{% url 'vision:video_feed_detections' video_feed.pk %}">
+        <section class="video-player" aria-label="Live video feed">
+            <video controls playsinline preload="none">
+                <source src="{% url 'vision:video_feed_stream' video_feed.pk %}" type="video/mp4">
+                Your browser does not support live video playback.
+            </video>
+            <canvas class="detection-overlay" aria-hidden="true"></canvas>
+        </section>
+
+        <aside class="detection-panel" aria-labelledby="feed-detections-title">
+            <p class="eyebrow">YOLO</p>
+            <h2 id="feed-detections-title">Detected now</h2>
+            <p class="detection-panel__status" data-detection-status aria-live="polite">
+                {% if detection.is_active %}Detection active{% elif detection.has_detection %}Detection data is stale{% else %}Waiting for the detection worker{% endif %}
+            </p>
+            <div class="detection-counts" data-detection-counts>
+                {% for name, count in detection.stable_counts.items %}
+                    <div class="detection-count">
+                        <span>{{ name }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                {% empty %}
+                    <p class="detection-counts__empty">No stabilized detections yet.</p>
+                {% endfor %}
+            </div>
+            <p class="detection-panel__note">Counts use the per-class mode over the last 10 frames, retaining the prior value on a tie. Boxes show the latest inference frame.</p>
+        </aside>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{% static 'js/feed-detections.js' %}" defer></script>
 {% endblock %}

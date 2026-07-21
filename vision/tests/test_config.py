@@ -49,3 +49,4 @@ class YoloConfigTests(TestCase):
         config = YoloConfig.from_options({"feed_id": feed.pk})
 
         self.assertEqual(config.source, feed.rtsp_url)
+        self.assertEqual(config.feed_id, feed.pk)

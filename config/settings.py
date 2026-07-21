@@ -115,3 +115,7 @@ YOLO_IMAGE_SIZE = int(os.getenv("YOLO_IMAGE_SIZE", "640"))
 YOLO_CONFIDENCE = float(os.getenv("YOLO_CONFIDENCE", "0.25"))
 YOLO_FRAME_STRIDE = int(os.getenv("YOLO_FRAME_STRIDE", "1"))
 YOLO_QUANTIZE = os.getenv("YOLO_QUANTIZE", "16")
+YOLO_COUNT_WINDOW = max(1, int(os.getenv("YOLO_COUNT_WINDOW", "10")))
+YOLO_STATE_STALE_SECONDS = max(
+    1, int(os.getenv("YOLO_STATE_STALE_SECONDS", "15"))
+)

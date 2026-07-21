@@ -70,6 +70,14 @@ The default model is `models/yolo26x.pt`, device is GPU `0`, image size is 640,
 and FP16 inference is enabled. Model weights are downloaded by Ultralytics on
 first use and excluded from Git.
 
+For database-backed feeds, the worker publishes the latest bounding boxes and a
+bounded 10-frame count history to one detection-state row per feed. The UI uses
+the per-class mode of that window and keeps the previous value while modes are
+tied, so displayed counts remain whole numbers without reacting to a one-frame
+miss or an evenly alternating count.
+`YOLO_COUNT_WINDOW` changes the window size, and
+`YOLO_STATE_STALE_SECONDS` controls when old results are marked stale.
+
 ## Production deployment
 
 Deployment templates live under `scripts/`. The deployment script installs a

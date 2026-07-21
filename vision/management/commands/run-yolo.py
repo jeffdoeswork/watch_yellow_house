@@ -3,6 +3,7 @@ from time import sleep
 from django.core.management.base import BaseCommand, CommandError
 
 from vision.config import YoloConfig
+from vision.services.detection_state import DetectionStateRecorder
 from vision.services.yolo_runner import YoloRunner
 
 
@@ -70,7 +71,14 @@ class Command(BaseCommand):
                 sleep(10)
                 continue
 
-            runner = YoloRunner(config, self.stdout.write)
+            recorder = (
+                DetectionStateRecorder(config.feed_id) if config.feed_id is not None else None
+            )
+            runner = YoloRunner(
+                config,
+                self.stdout.write,
+                on_result=recorder.record if recorder is not None else None,
+            )
             frame_count = runner.run(once=options["once"])
             if options["once"] or not options["watch"]:
                 self.stdout.write(

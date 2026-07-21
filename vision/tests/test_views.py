@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from vision.models import VideoFeed
+from vision.models import FeedDetectionState, VideoFeed
 
 
 class VideoFeedViewTests(TestCase):
@@ -43,7 +43,39 @@ class VideoFeedViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Live video feed")
         self.assertContains(response, "<video controls")
+        self.assertContains(response, "detection-overlay")
         self.assertContains(response, 'type="video/mp4"')
+        self.assertNotContains(response, self.feed.rtsp_url)
+
+    def test_detection_endpoint_requires_login(self):
+        response = self.client.get(
+            reverse("vision:video_feed_detections", args=(self.feed.pk,))
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response.url)
+
+    def test_detection_endpoint_returns_feed_state(self):
+        FeedDetectionState.objects.create(
+            feed=self.feed,
+            stable_counts={"person": 2},
+            current_counts={"person": 3},
+            boxes=[{"class_name": "person", "confidence": 0.9}],
+            frame_number=12,
+            inference_ms=15.2,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("vision:video_feed_detections", args=(self.feed.pk,))
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["stable_counts"], {"person": 2})
+        self.assertEqual(payload["current_counts"], {"person": 3})
+        self.assertEqual(payload["frame_number"], 12)
+        self.assertTrue(payload["is_active"])
         self.assertNotContains(response, self.feed.rtsp_url)
 
     @patch("vision.views.iter_video_chunks")

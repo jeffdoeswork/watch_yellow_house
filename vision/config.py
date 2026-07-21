@@ -10,6 +10,7 @@ from django.core.management.base import CommandError
 class YoloConfig:
     model: str
     source: str | int
+    feed_id: int | None
     device: str
     image_size: int
     confidence: float
@@ -19,13 +20,15 @@ class YoloConfig:
     @classmethod
     def from_options(cls, options: dict[str, Any]) -> "YoloConfig":
         source = options.get("source") or settings.YOLO_SOURCE
+        feed_id = options.get("feed_id")
         if source is None:
-            source = _database_source(options.get("feed_id"))
+            feed_id, source = _database_source(feed_id)
 
         model = options.get("model") or settings.YOLO_MODEL
         return cls(
             model=_resolve_model_path(model),
             source=_normalize_source(source),
+            feed_id=feed_id,
             device=options.get("device") or settings.YOLO_DEVICE,
             image_size=options.get("image_size") or settings.YOLO_IMAGE_SIZE,
             confidence=_option_or_setting(
@@ -43,7 +46,7 @@ def _normalize_source(source: str | int) -> str | int:
     return int(value) if value.isdigit() else value
 
 
-def _database_source(feed_id: int | None) -> str:
+def _database_source(feed_id: int | None) -> tuple[int, str]:
     from vision.models import VideoFeed
 
     feeds = VideoFeed.objects.all()
@@ -57,7 +60,7 @@ def _database_source(feed_id: int | None) -> str:
             "No stream source configured. Add a Video Feed in admin, pass --source, "
             "or set YOLO_SOURCE."
         )
-    return feed.rtsp_url
+    return feed.pk, feed.rtsp_url
 
 
 def _resolve_model_path(model: str | Path) -> str:
