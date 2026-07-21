@@ -11,7 +11,10 @@
     </header>
 
     <section class="video-player" aria-label="Live video feed">
-        <img src="{% url 'vision:video_feed_stream' video_feed.pk %}" alt="Live view from Video Feed #{{ video_feed.pk }}">
+        <video controls playsinline preload="none">
+            <source src="{% url 'vision:video_feed_stream' video_feed.pk %}" type="video/mp4">
+            Your browser does not support live video playback.
+        </video>
     </section>
 </div>
 {% endblock %}

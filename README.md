@@ -16,6 +16,10 @@ python manage.py runserver
 
 Open <http://127.0.0.1:8000/>.
 
+Live feeds are transcoded to browser-compatible video by FFmpeg. Install the
+`ffmpeg` system package for local development; `deploy.sh` installs it in
+production. The browser player includes playback, mute, and volume controls.
+
 Local settings are loaded from `.env`. Real process environment variables take
 precedence, so production values supplied by systemd are not overwritten by a
 project-level file. At minimum, review `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`,
@@ -54,7 +58,7 @@ argument, the worker uses the first saved feed. Select a specific record with
 `--feed-id ID`. The source can also be overridden with `--source` or the
 `YOLO_SOURCE` environment variable; it may be a stream, video/image path, or a
 webcam index such as `0`. See `.env.example` for all tuning settings.
-Environment files are not loaded automatically.
+The project `.env` file is loaded automatically.
 
 Use `--once` to process one frame and exit during setup:
 
@@ -79,15 +83,18 @@ command:
 bash ./deploy.sh
 ```
 
-The script requests `sudo` when necessary. On first deployment it detects the
-machine hostname and IPv4 addresses; later deployments reuse the hosts from
-`/etc/watch-yellow-house.env`. To use a specific domain on the first run, the
-optional form is `SERVER_NAME=watch.example.com bash ./deploy.sh`.
+The script requests `sudo` when necessary and reads Nginx hostnames from
+`DJANGO_ALLOWED_HOSTS` in the project `.env`. The optional `SERVER_NAME`
+environment variable can override the Nginx hostnames for a single deployment.
 
-The environment file is created once and preserved on later deployments. Edit
-it for environment-specific Django or YOLO settings. Every deployment installs
+Every deployment securely copies the project `.env` to
+`/etc/watch-yellow-house.env`, applies production-only overrides, installs
 updated requirements, runs migrations and `collectstatic`, validates the
 configuration, then restarts both application services and reloads Nginx.
+
+Set `DJANGO_SESSION_COOKIE_SECURE` and `DJANGO_CSRF_COOKIE_SECURE` to `false`
+when accessing Nginx directly over LAN HTTP. Once the application is used only
+through HTTPS, set both values to `true` and redeploy.
 
 The included Nginx configuration serves HTTP. Add a TLS certificate before
 exposing the login or credential-bearing application outside a trusted network.

@@ -43,7 +43,13 @@ elevate_if_needed() {
 detect_server_names() {
     [[ -z "$SERVER_NAME" ]] || return
 
-    if [[ -r "$ENV_FILE" ]]; then
+    if [[ -r "$APP_DIR/.env" ]]; then
+        SERVER_NAME="$(
+            sed -n 's/^DJANGO_ALLOWED_HOSTS=//p' "$APP_DIR/.env" \
+                | head -n 1 \
+                | tr ',' ' '
+        )"
+    elif [[ -r "$ENV_FILE" ]]; then
         SERVER_NAME="$(
             sed -n 's/^DJANGO_ALLOWED_HOSTS=//p' "$ENV_FILE" \
                 | head -n 1 \
@@ -80,6 +86,12 @@ validate_configuration() {
     [[ "$SERVER_NAME" =~ ^[-A-Za-z0-9._\ ]+$ ]] || fail "Invalid SERVER_NAME."
     [[ -f "$APP_DIR/manage.py" ]] || fail "manage.py was not found in APP_DIR."
     [[ -f "$APP_DIR/requirements.txt" ]] || fail "requirements.txt was not found."
+    [[ -f "$APP_DIR/.env" ]] || fail \
+        "Create $APP_DIR/.env from .env.example before deploying."
+    grep -q '^DJANGO_SECRET_KEY=..' "$APP_DIR/.env" || fail \
+        "DJANGO_SECRET_KEY must be set in $APP_DIR/.env."
+    grep -q '^DJANGO_ALLOWED_HOSTS=..' "$APP_DIR/.env" || fail \
+        "DJANGO_ALLOWED_HOSTS must be set in $APP_DIR/.env."
     id "$APP_USER" >/dev/null 2>&1 || fail "APP_USER does not exist."
 }
 
@@ -87,6 +99,7 @@ ensure_system_packages() {
     local packages=()
     command -v nginx >/dev/null 2>&1 || packages+=(nginx)
     command -v openssl >/dev/null 2>&1 || packages+=(openssl)
+    command -v ffmpeg >/dev/null 2>&1 || packages+=(ffmpeg)
     command -v python3 >/dev/null 2>&1 || packages+=(python3 python3-venv)
     if command -v python3 >/dev/null 2>&1 && ! python3 -c 'import venv' 2>/dev/null; then
         packages+=(python3-venv)
@@ -100,6 +113,7 @@ ensure_system_packages() {
 
     command -v nginx >/dev/null 2>&1 || fail "nginx installation failed."
     command -v openssl >/dev/null 2>&1 || fail "openssl is required."
+    command -v ffmpeg >/dev/null 2>&1 || fail "ffmpeg is required."
     command -v runuser >/dev/null 2>&1 || fail "runuser is required."
     command -v systemctl >/dev/null 2>&1 || fail "systemd is required."
     [[ -d /run/systemd/system ]] || fail "This machine is not booted with systemd."
@@ -141,29 +155,19 @@ prepare_application() {
 }
 
 install_environment() {
-    if [[ -f "$ENV_FILE" ]]; then
-        log "Preserving existing $ENV_FILE"
-        return
-    fi
+    local temp_env
+    temp_env="$(mktemp -t watch-yellow-house-env.XXXXXXXX)"
 
-    local secret_key
-    local allowed_hosts
-    secret_key="$(openssl rand -hex 32)"
-    allowed_hosts="${SERVER_NAME// /,}"
-    log "Creating $ENV_FILE"
-    install -m 0600 /dev/null "$ENV_FILE"
+    log "Updating $ENV_FILE from $APP_DIR/.env"
+    chmod 0600 "$APP_DIR/.env"
+    install -m 0600 "$APP_DIR/.env" "$temp_env"
     {
-        printf 'DJANGO_SECRET_KEY=%s\n' "$secret_key"
+        printf '\n# Production overrides managed by deploy.sh\n'
         printf 'DJANGO_DEBUG=false\n'
-        printf 'DJANGO_ALLOWED_HOSTS=%s,localhost,127.0.0.1\n' "$allowed_hosts"
         printf 'DJANGO_STATIC_ROOT=%s\n' "$STATIC_DIR"
-        printf 'YOLO_MODEL=%s/models/yolo26x.pt\n' "$APP_DIR"
-        printf 'YOLO_DEVICE=0\n'
-        printf 'YOLO_IMAGE_SIZE=640\n'
-        printf 'YOLO_CONFIDENCE=0.25\n'
-        printf 'YOLO_FRAME_STRIDE=1\n'
-        printf 'YOLO_QUANTIZE=16\n'
-    } > "$ENV_FILE"
+    } >> "$temp_env"
+    install -m 0600 "$temp_env" "$ENV_FILE"
+    unlink "$temp_env"
 }
 
 render_template() {
@@ -215,8 +219,8 @@ main() {
     detect_server_names
     validate_configuration
     ensure_system_packages
-    install_environment
     prepare_application
+    install_environment
     install_configuration
     activate_services
 

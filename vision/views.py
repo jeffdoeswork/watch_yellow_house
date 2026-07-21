@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import never_cache
 
 from .models import VideoFeed
-from .streaming import iter_mjpeg_frames, open_rtsp_capture
+from .streaming import iter_video_chunks, open_browser_video_stream
 
 
 @login_required
@@ -29,15 +29,16 @@ def video_feed_detail(request, pk):
 @login_required
 def video_feed_stream(request, pk):
     video_feed = get_object_or_404(VideoFeed, pk=pk)
-    capture = open_rtsp_capture(video_feed.rtsp_url)
-    if not capture.isOpened():
-        capture.release()
-        return HttpResponse("Unable to connect to this video feed.", status=502)
+    try:
+        process = open_browser_video_stream(video_feed.rtsp_url)
+    except OSError:
+        return HttpResponse("Video streaming is unavailable.", status=503)
 
     response = StreamingHttpResponse(
-        iter_mjpeg_frames(capture),
-        content_type="multipart/x-mixed-replace; boundary=frame",
+        iter_video_chunks(process),
+        content_type="video/mp4",
     )
     response["Cache-Control"] = "no-store, no-cache, must-revalidate"
     response["X-Accel-Buffering"] = "no"
+    response["Content-Disposition"] = "inline"
     return response
