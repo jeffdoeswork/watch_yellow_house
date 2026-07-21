@@ -67,8 +67,10 @@ python manage.py run-yolo --source path/to/test-image.jpg --once
 ```
 
 The default model is `models/yolo26x.pt`, device is GPU `0`, image size is 640,
-and FP16 inference is enabled. Model weights are downloaded by Ultralytics on
-first use and excluded from Git.
+minimum detection confidence is 50%, and FP16 inference is enabled. Results
+below the confidence threshold are excluded before they reach either the
+10-frame count window or the bounding-box overlay. Model weights are downloaded
+by Ultralytics on first use and excluded from Git.
 
 For database-backed feeds, the worker publishes the latest bounding boxes and a
 bounded 10-frame count history to one detection-state row per feed. The UI uses
