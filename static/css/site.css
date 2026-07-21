@@ -286,6 +286,216 @@ h1 {
   transform: translateX(3px);
 }
 
+.sidebar__account {
+  margin-top: auto;
+  padding: 18px 15px 0;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  color: #aabbb2;
+  font-size: 11px;
+}
+
+.sidebar__account span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__account form {
+  margin-top: 10px;
+}
+
+.sidebar__account button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--yellow);
+  cursor: pointer;
+  font: 700 10px var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 760px;
+  margin-top: 48px;
+}
+
+.feed-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  text-decoration: none;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.feed-card:hover {
+  border-color: #a9a493;
+  transform: translateY(-2px);
+}
+
+.feed-card__preview {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  background: var(--yellow);
+}
+
+.feed-card__preview svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: var(--green);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.feed-card strong,
+.feed-card small {
+  display: block;
+}
+
+.feed-card strong {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.feed-card small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-card__arrow {
+  color: var(--muted);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 30px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--ink);
+}
+
+.page-header--detail {
+  padding-bottom: 34px;
+}
+
+.video-player {
+  max-width: 960px;
+  margin-top: 36px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  background: #111;
+}
+
+.video-player img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  padding: 24px;
+  place-items: center;
+  background: var(--green);
+}
+
+.login-card {
+  width: min(100%, 430px);
+  padding: 42px;
+  background: var(--white);
+}
+
+.login-card__brand {
+  color: var(--green);
+}
+
+.brand__name--login-accent {
+  color: #9a7e16;
+}
+
+.login-card__heading {
+  margin-top: 52px;
+}
+
+.login-card h1 {
+  font-size: 48px;
+}
+
+.form-error {
+  margin: 22px 0;
+  padding: 12px;
+  border-left: 3px solid #a73b2e;
+  background: #f7e7e3;
+  color: #7e2c22;
+  font-size: 12px;
+}
+
+.login-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 28px;
+}
+
+.login-form label {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: white;
+  color: var(--ink);
+  font: 14px var(--font-sans);
+}
+
+.login-form input:focus {
+  border-color: var(--green);
+  outline: 2px solid rgb(38 72 61 / 12%);
+}
+
+.login-form button {
+  margin-top: 16px;
+  padding: 13px 16px;
+  border: 0;
+  background: var(--yellow);
+  color: var(--green);
+  cursor: pointer;
+  font: 700 11px var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .nav-toggle,
 .nav-scrim {
   display: none;
@@ -396,6 +606,14 @@ h1 {
   .empty-panel .button-link {
     grid-column: 1 / -1;
     justify-self: start;
+  }
+
+  .feed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-card {
+    padding: 32px 24px;
   }
 }
 

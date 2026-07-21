@@ -18,9 +18,17 @@
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8v9.7a.5.5 0 0 1-.5.5h-5.75v-6.5h-5.5V21H3.5a.5.5 0 0 1-.5-.5v-9.7Z"/></svg>
             <span>Dashboard</span>
         </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'video_feeds' %}nav-link--active{% endif %}" href="{% url 'core:video_feeds' %}" {% if request.resolver_match.url_name == 'video_feeds' %}aria-current="page"{% endif %}>
+        <a class="nav-link {% if request.resolver_match.namespace == 'vision' %}nav-link--active{% endif %}" href="{% url 'vision:video_feed_list' %}" {% if request.resolver_match.namespace == 'vision' %}aria-current="page"{% endif %}>
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 13.5v-7ZM9 20h6M12 16v4M10 8l5 2.5-5 2.5V8Z"/></svg>
             <span>Video Feeds</span>
         </a>
     </nav>
+
+    <div class="sidebar__account">
+        <span>Signed in as {{ request.user.username }}</span>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    </div>
 </aside>

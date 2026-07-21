@@ -1,0 +1,27 @@
+[Unit]
+Description=Watch Yellow House Django application
+After=network.target
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=@@APP_USER@@
+Group=www-data
+WorkingDirectory=@@APP_DIR@@
+EnvironmentFile=/etc/watch-yellow-house.env
+Environment=PYTHONUNBUFFERED=1
+RuntimeDirectory=watch-yellow-house
+RuntimeDirectoryMode=0750
+UMask=0007
+ExecStart=@@VENV_DIR@@/bin/gunicorn config.wsgi:application --bind unix:/run/watch-yellow-house/gunicorn.sock --worker-class gthread --workers 2 --threads 4 --timeout 120 --access-logfile - --error-logfile -
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGQUIT
+KillMode=mixed
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -20,9 +20,7 @@ class YoloConfig:
     def from_options(cls, options: dict[str, Any]) -> "YoloConfig":
         source = options.get("source") or settings.YOLO_SOURCE
         if source is None:
-            raise CommandError(
-                "No stream source configured. Pass --source or set YOLO_SOURCE."
-            )
+            source = _database_source(options.get("feed_id"))
 
         model = options.get("model") or settings.YOLO_MODEL
         return cls(
@@ -43,6 +41,23 @@ def _normalize_source(source: str | int) -> str | int:
         return source
     value = str(source).strip()
     return int(value) if value.isdigit() else value
+
+
+def _database_source(feed_id: int | None) -> str:
+    from vision.models import VideoFeed
+
+    feeds = VideoFeed.objects.all()
+    if feed_id is not None:
+        feeds = feeds.filter(pk=feed_id)
+    feed = feeds.first()
+    if feed is None:
+        if feed_id is not None:
+            raise CommandError(f"Video Feed #{feed_id} does not exist.")
+        raise CommandError(
+            "No stream source configured. Add a Video Feed in admin, pass --source, "
+            "or set YOLO_SOURCE."
+        )
+    return feed.rtsp_url
 
 
 def _resolve_model_path(model: str | Path) -> str:

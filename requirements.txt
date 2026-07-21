@@ -1,2 +1,4 @@
 Django>=5.2,<6.0
+gunicorn==26.0.0
+python-dotenv==1.2.2
 ultralytics==8.4.102

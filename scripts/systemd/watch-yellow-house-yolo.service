@@ -1,0 +1,22 @@
+[Unit]
+Description=Watch Yellow House persistent YOLO detector
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=@@APP_USER@@
+Group=@@APP_GROUP@@
+WorkingDirectory=@@APP_DIR@@
+EnvironmentFile=/etc/watch-yellow-house.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=@@VENV_DIR@@/bin/python manage.py run-yolo --watch
+KillSignal=SIGINT
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=10
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

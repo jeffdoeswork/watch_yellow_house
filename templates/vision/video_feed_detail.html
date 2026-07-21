@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Video Feed #{{ video_feed.pk }} · Watch Yellow House{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+    <a class="back-link" href="{% url 'vision:video_feed_list' %}"><span aria-hidden="true">←</span> Video Feeds</a>
+    <header class="page-header page-header--detail">
+        <p class="eyebrow">{{ video_feed.connection_host }}</p>
+        <h1>Video Feed #{{ video_feed.pk }}</h1>
+    </header>
+
+    <section class="video-player" aria-label="Live video feed">
+        <img src="{% url 'vision:video_feed_stream' video_feed.pk %}" alt="Live view from Video Feed #{{ video_feed.pk }}">
+    </section>
+</div>
+{% endblock %}

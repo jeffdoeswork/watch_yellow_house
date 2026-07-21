@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sign in to Watch Yellow House.">
+    <title>Log in · Watch Yellow House</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body class="auth-page">
+    <main class="login-card">
+        <a class="brand__link login-card__brand" href="{% url 'login' %}" aria-label="Watch Yellow House login">
+            <span class="brand__mark" aria-hidden="true">
+                <span class="brand__roof"></span>
+                <span class="brand__door"></span>
+            </span>
+            <span>
+                <span class="brand__name">Watch</span>
+                <span class="brand__name brand__name--login-accent">Yellow House</span>
+            </span>
+        </a>
+
+        <div class="login-card__heading">
+            <p class="eyebrow">Restricted access</p>
+            <h1>Log in</h1>
+        </div>
+
+        {% if form.errors %}
+            <p class="form-error" role="alert">Your username and password did not match.</p>
+        {% endif %}
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+            <button type="submit">Log in</button>
+        </form>
+    </main>
+</body>
+</html>

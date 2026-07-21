@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Video Feeds · Watch Yellow House{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+    <header class="page-header">
+        <p class="eyebrow">Streams</p>
+        <h1>Video Feeds</h1>
+        <p class="page-intro">Select a feed to view its live video.</p>
+    </header>
+
+    {% if video_feeds %}
+        <div class="feed-grid">
+            {% for feed in video_feeds %}
+                <a class="feed-card" href="{% url 'vision:video_feed_detail' feed.pk %}">
+                    <span class="feed-card__preview" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 15.5v-9ZM10 8l5 2.5-5 2.5V8Z"/></svg>
+                    </span>
+                    <span>
+                        <strong>Video Feed #{{ feed.pk }}</strong>
+                        <small>{{ feed.connection_host }}</small>
+                    </span>
+                    <span class="feed-card__arrow" aria-hidden="true">→</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <section class="empty-panel" aria-labelledby="feeds-empty-title">
+            <div class="empty-panel__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 15.5v-9ZM10 8l5 2.5-5 2.5V8Z"/></svg>
+            </div>
+            <div>
+                <h2 id="feeds-empty-title">No video feeds configured</h2>
+                <p>Add an RTSP connection through Django admin.</p>
+            </div>
+            {% if request.user.is_staff %}
+                <a class="button-link" href="{% url 'admin:vision_videofeed_add' %}">Add video feed <span aria-hidden="true">→</span></a>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

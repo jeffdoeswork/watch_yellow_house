@@ -2,11 +2,35 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-change-me-in-production"
-DEBUG = True
-ALLOWED_HOSTS: list[str] = []
+# Load local development values while allowing systemd/container environment
+# variables to take precedence in production.
+load_dotenv(BASE_DIR / ".env", override=False)
+
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name):
+    return [item.strip() for item in os.getenv(name, "").split(",") if item.strip()]
+
+
+def env_path(name, default):
+    path = Path(os.getenv(name, default))
+    return path if path.is_absolute() else BASE_DIR / path
+
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-development-only")
+DEBUG = env_bool("DJANGO_DEBUG", default=True)
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -25,6 +49,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -69,8 +94,17 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = env_path("DJANGO_STATIC_ROOT", BASE_DIR / "staticfiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "core:dashboard"
+LOGOUT_REDIRECT_URL = "login"
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE")
+CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE")
 
 # Long-running object-detection worker settings. Environment variables keep
 # stream credentials and machine-specific tuning out of source control.

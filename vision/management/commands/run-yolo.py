@@ -1,4 +1,6 @@
-from django.core.management.base import BaseCommand
+from time import sleep
+
+from django.core.management.base import BaseCommand, CommandError
 
 from vision.config import YoloConfig
 from vision.services.yolo_runner import YoloRunner
@@ -11,6 +13,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--source",
             help="Stream URL, video/image path, or webcam index (overrides YOLO_SOURCE).",
+        )
+        parser.add_argument(
+            "--feed-id",
+            type=int,
+            help="Use a saved Video Feed by database ID.",
         )
         parser.add_argument(
             "--model",
@@ -40,17 +47,42 @@ class Command(BaseCommand):
             action="store_true",
             help="Process one frame and exit (useful for smoke tests).",
         )
+        parser.add_argument(
+            "--watch",
+            action="store_true",
+            help="Wait for a saved feed and reconnect after stream interruptions.",
+        )
 
     def handle(self, *args, **options):
-        config = YoloConfig.from_options(options)
-        runner = YoloRunner(config, self.stdout.write)
-
         try:
-            frame_count = runner.run(once=options["once"])
+            self._run(options)
         except KeyboardInterrupt:
             self.stdout.write(self.style.WARNING("Detection stopped by operator."))
-            return
 
-        self.stdout.write(
-            self.style.SUCCESS(f"Detection finished after {frame_count} frame(s).")
-        )
+    def _run(self, options):
+        while True:
+            try:
+                config = YoloConfig.from_options(options)
+            except CommandError as error:
+                if not options["watch"]:
+                    raise
+                self.stdout.write(self.style.WARNING(f"{error} Retrying in 10s."))
+                sleep(10)
+                continue
+
+            runner = YoloRunner(config, self.stdout.write)
+            frame_count = runner.run(once=options["once"])
+            if options["once"] or not options["watch"]:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Detection finished after {frame_count} frame(s)."
+                    )
+                )
+                return
+
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Stream ended after {frame_count} frame(s). Reconnecting in 5s."
+                )
+            )
+            sleep(5)
