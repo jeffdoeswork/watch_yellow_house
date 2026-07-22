@@ -7,24 +7,28 @@
   gap: 18px;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .quality-switcher__controls {
   display: inline-flex;
   padding: 3px;
-  background: #e7e3d6;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgb(255 254 250 / 72%);
 }
 
 .quality-switcher__button {
   padding: 9px 12px;
   border: 0;
+  border-radius: 7px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   font: 700 10px var(--font-sans);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: background 150ms ease, color 150ms ease;
 }
 
 .quality-switcher__button:hover {
@@ -39,6 +43,7 @@
 .quality-switcher__button--active {
   background: var(--green);
   color: white;
+  box-shadow: 0 2px 6px rgb(22 55 45 / 18%);
 }
 
 .quality-switcher__button--active:hover {
@@ -95,16 +100,19 @@
   align-items: center;
   padding: 8px 10px;
   border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 8px;
   background: rgb(16 32 27 / 82%);
   color: white;
   cursor: pointer;
   font: 700 10px var(--font-sans);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: background 150ms ease, transform 150ms ease;
 }
 
 .fullscreen-button:hover {
   background: var(--green);
+  transform: translateY(-1px);
 }
 
 .fullscreen-button:focus-visible {
