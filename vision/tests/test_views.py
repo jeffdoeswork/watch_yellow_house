@@ -55,7 +55,20 @@ class VideoFeedViewTests(TestCase):
         self.assertContains(response, "Live video feed")
         self.assertContains(response, "<video controls")
         self.assertContains(response, "detection-overlay")
-        self.assertContains(response, 'type="video/mp4"')
+        self.assertContains(response, 'data-quality-mode="low" aria-pressed="true"')
+        self.assertContains(response, "Annotated 1 FPS preview · no audio")
+        self.assertContains(
+            response,
+            f'data-preview-url="{reverse("vision:video_feed_preview", args=(self.feed.pk,))}"',
+        )
+        self.assertContains(
+            response,
+            f'data-stream-url="{reverse("vision:video_feed_stream", args=(self.feed.pk,))}"',
+        )
+        self.assertContains(response, "data-high-quality-video hidden")
+        self.assertContains(response, "data-fullscreen-button")
+        self.assertContains(response, 'aria-label="Enter fullscreen"')
+        self.assertNotContains(response, "<source")
         self.assertNotContains(response, self.feed.rtsp_url)
 
     def test_detection_endpoint_requires_login(self):
@@ -86,9 +99,27 @@ class VideoFeedViewTests(TestCase):
         self.assertEqual(payload["stable_counts"], {"person": 2})
         self.assertEqual(payload["current_counts"], {"person": 3})
         self.assertEqual(payload["frame_number"], 12)
+        self.assertEqual(payload["inference_ms"], 15.2)
+        self.assertEqual(payload["target_fps"], 2)
         self.assertTrue(payload["is_active"])
         self.assertEqual(payload["status"], "detecting")
         self.assertNotContains(response, self.feed.rtsp_url)
+
+    def test_detail_shows_simple_configured_detection_rate(self):
+        FeedDetectionState.objects.create(
+            feed=self.feed,
+            frame_number=711,
+            inference_ms=39.4,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("vision:video_feed_detail", args=(self.feed.pk,))
+        )
+
+        self.assertContains(response, "Detection active · 2 FPS")
+        self.assertNotContains(response, "frame 711")
+        self.assertNotContains(response, "39.4ms")
 
     def test_preview_endpoint_requires_login(self):
         response = self.client.get(

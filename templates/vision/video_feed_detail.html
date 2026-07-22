@@ -3,6 +3,10 @@
 
 {% block title %}Video Feed #{{ video_feed.pk }} · Watch Yellow House{% endblock %}
 
+{% block extra_styles %}
+    <link rel="stylesheet" href="{% static 'css/feed-detail.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="page-wrap page-wrap--wide">
     <a class="back-link" href="{% url 'vision:video_feed_list' %}"><span aria-hidden="true">←</span> Video Feeds</a>
@@ -11,20 +15,50 @@
         <h1>Video Feed #{{ video_feed.pk }}</h1>
     </header>
 
-    <div class="feed-monitor" data-detections-url="{% url 'vision:video_feed_detections' video_feed.pk %}">
-        <section class="video-player" aria-label="Live video feed">
-            <video controls playsinline preload="none">
-                <source src="{% url 'vision:video_feed_stream' video_feed.pk %}" type="video/mp4">
-                Your browser does not support live video playback.
-            </video>
-            <canvas class="detection-overlay" aria-hidden="true"></canvas>
-        </section>
+    <div
+        class="feed-monitor"
+        data-detections-url="{% url 'vision:video_feed_detections' video_feed.pk %}"
+        data-preview-url="{% url 'vision:video_feed_preview' video_feed.pk %}"
+        data-stream-url="{% url 'vision:video_feed_stream' video_feed.pk %}"
+    >
+        <div class="feed-viewer">
+            <div class="quality-switcher">
+                <div class="quality-switcher__controls" role="group" aria-label="Feed quality">
+                    <button class="quality-switcher__button quality-switcher__button--active" type="button" data-quality-mode="low" aria-pressed="true">
+                        Low quality
+                    </button>
+                    <button class="quality-switcher__button" type="button" data-quality-mode="high" aria-pressed="false">
+                        High quality
+                    </button>
+                </div>
+                <p class="quality-switcher__description" data-quality-description>Annotated 1 FPS preview · no audio</p>
+            </div>
+
+            <section class="video-player" aria-label="Live video feed">
+                <div class="low-quality-feed" data-low-quality-feed>
+                    <img data-low-quality-image alt="Annotated low-quality preview from Video Feed #{{ video_feed.pk }}">
+                    <span data-low-quality-placeholder>
+                        {% if video_feed.is_enabled %}Waiting for annotated preview{% else %}Detection is paused{% endif %}
+                    </span>
+                </div>
+                <video controls playsinline preload="none" data-high-quality-video hidden>
+                    Your browser does not support live video playback.
+                </video>
+                <canvas class="detection-overlay" aria-hidden="true" hidden></canvas>
+                <button class="fullscreen-button" type="button" data-fullscreen-button aria-label="Enter fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path>
+                    </svg>
+                    <span data-fullscreen-label>Full screen</span>
+                </button>
+            </section>
+        </div>
 
         <aside class="detection-panel" aria-labelledby="feed-detections-title">
             <p class="eyebrow">YOLO</p>
             <h2 id="feed-detections-title">Detected now</h2>
             <p class="detection-panel__status" data-detection-status aria-live="polite">
-                {% if detection.status == 'detecting' %}Detection active{% elif detection.status == 'reconnecting' %}Reconnecting to detection feed{% elif detection.status == 'stale' %}Detection data is stale{% elif detection.status == 'paused' %}Detection paused{% else %}Waiting for the detection worker{% endif %}
+                {% if detection.status == 'detecting' %}Detection active · {{ detection.target_fps|floatformat:"-1" }} FPS{% elif detection.status == 'reconnecting' %}Reconnecting to detection feed{% elif detection.status == 'stale' %}Detection data is stale{% elif detection.status == 'paused' %}Detection paused{% else %}Waiting for the detection worker{% endif %}
             </p>
             <div class="detection-counts" data-detection-counts>
                 {% for name, count in detection.stable_counts.items %}

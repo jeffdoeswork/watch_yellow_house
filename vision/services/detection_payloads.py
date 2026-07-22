@@ -23,6 +23,7 @@ def state_payload(
             "is_active": False,
             "is_enabled": is_enabled,
             "status": "waiting" if is_enabled else "paused",
+            "target_fps": settings.YOLO_INFERENCE_FPS,
         }
 
     has_detection = state.frame_number > 0
@@ -51,6 +52,7 @@ def state_payload(
         "is_active": is_active,
         "is_enabled": is_enabled,
         "status": status,
+        "target_fps": settings.YOLO_INFERENCE_FPS,
     }
 
 

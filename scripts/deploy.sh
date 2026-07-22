@@ -141,7 +141,7 @@ prepare_application() {
 
     log "Collecting static files"
     install -d -m 0755 -o "$APP_USER" -g www-data "$STATIC_DIR"
-    run_as_app env DJANGO_STATIC_ROOT="$STATIC_DIR" \
+    run_as_app env DJANGO_DEBUG=false DJANGO_STATIC_ROOT="$STATIC_DIR" \
         "$VENV_DIR/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
 
     log "Running Django deployment checks"

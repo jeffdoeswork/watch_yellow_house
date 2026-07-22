@@ -83,11 +83,13 @@ miss or an evenly alternating count.
 `YOLO_STATE_STALE_SECONDS` controls when old results are marked stale.
 
 The same inference result also produces a 640-pixel-wide, quality-65 annotated
-JPEG for the Dashboard once per second. Dashboard previews do not open another
-RTSP connection or run another inference. Full MP4 video and audio remain on an
-individual feed's detail page. Tune the independent detection and preview rates
-with `YOLO_INFERENCE_FPS` and `YOLO_PREVIEW_FPS`; see `.env.example` for image,
-storage, and feed-refresh settings.
+JPEG once per second. Dashboard cards and individual feed pages use that
+low-bandwidth, silent preview by default without opening another RTSP connection
+or running another inference. A feed page's **High quality** toggle lazily opens
+the full MP4 video and audio stream; switching back closes it. Tune the
+independent detection and preview rates with `YOLO_INFERENCE_FPS` and
+`YOLO_PREVIEW_FPS`; see `.env.example` for image, storage, and feed-refresh
+settings.
 
 ## Production deployment
 
@@ -110,6 +112,8 @@ Every deployment securely copies the project `.env` to
 `/etc/watch-yellow-house.env`, applies production-only overrides, installs
 updated requirements, runs migrations and `collectstatic`, validates the
 configuration, then restarts both application services and reloads Nginx.
+Production static assets use content-hashed filenames, allowing Nginx to cache
+CSS and JavaScript as immutable without leaving browsers on an older deployment.
 
 Set `DJANGO_SESSION_COOKIE_SECURE` and `DJANGO_CSRF_COOKIE_SECURE` to `false`
 when accessing Nginx directly over LAN HTTP. Once the application is used only
